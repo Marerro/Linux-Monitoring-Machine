@@ -1,0 +1,36 @@
+#! /bin/bash
+
+export $(grep -v '^#' ../.env | xargs)
+
+sudo useradd --no-create-home --shell /bin/false "$NODE_EXPORTER_USER"
+
+wget https://github.com/prometheus/node_exporter/releases/download/v1.9.1/node_exporter-1.9.1.linux-amd64.tar.gz
+tar xvf node_exporter-1.9.1.linux-amd64.tar.gz
+sudo cp  node_exporter-1.9.1.linux-amd64/node_exporter /usr/local/bin/
+sudo chmod +x /usr/local/bin/node_exporter
+
+# [Create Systemd Service]
+sudo tee  /etc/systemd/system/$NODE_EXPORTER_USER.service > /dev/null <<EOF
+[Unit]
+Description=Node Exporter
+Wants=network-online.target
+After=network.online.target
+
+[Service]
+User=$NODE_EXPORTER_USER
+Group=$NODE_EXPORTER_USER
+Type=simple
+ExecStart=/usr/local/bin/node_exporter
+
+[Install]
+WantedBy=default.target
+EOF
+
+[Reload System]
+sudo systemctl daemon-reexec
+sudo systemctl daemon-reload
+sudo systemctl enable $NODE_EXPORTER_USER
+sudo systemctl start $NODE_EXPORTER_USER
+
+echo "Node Exporter running as $NODE_EXPORTER_USER"
+
