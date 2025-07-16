@@ -25,6 +25,5 @@ EOF
 sudo systemctl daemon-reload
 sudo systemctl enable prometheus
 sudo systemctl start prometheus
-sudo systemctl status prometheus
 
 echo "Prometheus successfully initialized!"
